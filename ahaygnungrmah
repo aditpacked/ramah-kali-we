@@ -1,0 +1,105 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local leaderstats = LocalPlayer:WaitForChild("leaderstats")
+
+local checkpointStat = leaderstats:WaitForChild("Checkpoint")
+local summitStat = leaderstats:WaitForChild("Summits")
+
+local checkpoints = {
+    [0] = CFrame.new(-924.415283, -162.624069, -796.068604),
+    [1] = CFrame.new(-383.62674, -182.437103, -825.920837),
+    [2] = CFrame.new(-765.517273, -42.2615395, -804.050232),
+    [3] = CFrame.new(-1134.93701, -94.5399475, -1168.0365),
+    [4] = CFrame.new(-652.218689, -26.5494938, -1263.72864),
+    [5] = CFrame.new(-1142.85132, 17.5048256, -1438.16052),
+    [6] = CFrame.new(-936.768005, -102.675156, -1515.05688),
+    [7] = CFrame.new(-460.066559, -46.9257469, -1610.33594),
+    [8] = CFrame.new(95.5869904, -38.9119797, -1229.88477),
+    [9] = CFrame.new(102.027786, 109.436668, -829.650085),
+}
+
+local delayPerTP = 0.5
+local maxStuckTime = 2
+local running = false
+
+local function tpTo(cframe)
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    hrp.CFrame = cframe + Vector3.new(0,5,0)
+
+    task.wait(0.05)
+    hrp.CFrame = hrp.CFrame * CFrame.new(0,0,-1)
+    task.wait(0.05)
+    hrp.CFrame = hrp.CFrame * CFrame.new(0,0,1)
+end
+
+local function resetCharacter()
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.Health = 0
+    end
+end
+
+local function mainLoop()
+    local lastCP = checkpointStat.Value
+    local lastUpdate = tick()
+
+    while running do
+        local currentCP = checkpointStat.Value
+        local summitBefore = summitStat.Value
+
+        if checkpoints[currentCP] then
+            tpTo(checkpoints[currentCP])
+            task.wait(delayPerTP)
+        end
+
+        if currentCP >= 9 then
+            task.wait(1)
+            if summitStat.Value > summitBefore then
+                -- langsung lanjut
+            end
+        end
+
+        if checkpointStat.Value ~= lastCP then
+            lastUpdate = tick()
+            lastCP = checkpointStat.Value
+        elseif tick() - lastUpdate >= maxStuckTime then
+            resetCharacter()
+            task.wait(3)
+            lastUpdate = tick()
+        end
+
+        task.wait(0.1)
+    end
+end
+
+-- GUI Toggle Minimalis
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AutoTPSys"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0,120,0,35)
+button.Position = UDim2.new(0.5,-60,0.1,0)
+button.BackgroundTransparency = 0.8 -- 20% opacity
+button.BackgroundColor3 = Color3.fromRGB(20,20,20)
+button.TextColor3 = Color3.fromRGB(255,255,255)
+button.TextScaled = true
+button.Text = "AUTO: OFF"
+button.Parent = screenGui
+button.Draggable = true
+
+button.MouseButton1Click:Connect(function()
+    running = not running
+    if running then
+        button.Text = "AUTO: ON"
+        button.BackgroundColor3 = Color3.fromRGB(40,120,40)
+        task.spawn(mainLoop)
+    else
+        button.Text = "AUTO: OFF"
+        button.BackgroundColor3 = Color3.fromRGB(20,20,20)
+    end
+end)
