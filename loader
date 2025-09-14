@@ -1,0 +1,34 @@
+-- Daftar username yang diizinkan
+local allowedUsers = {
+    ["9wenerd"] = true,
+    ["6atotkaca9"] = true,
+}
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Cek apakah username ada di daftar
+if not allowedUsers[LocalPlayer.Name] then
+    warn("❌ Kamu tidak punya izin menjalankan script ini.")
+    return
+end
+
+-- Loadstring dari URL
+local url = "https://raw.githubusercontent.com/aditpacked/ramah-kali-we/refs/heads/main/ahaygnungrmah"
+local success, scriptContent = pcall(function()
+    return game:HttpGet(url)
+end)
+
+if not success then
+    warn("❌ Gagal ambil script dari URL")
+    return
+end
+
+-- Jalankan script utama
+local loaded, err = pcall(function()
+    loadstring(scriptContent)()
+end)
+
+if not loaded then
+    warn("❌ Error saat menjalankan script:", err)
+end
