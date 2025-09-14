@@ -1,36 +1,48 @@
--- Daftar username yang diizinkan
+-- 🔒 Username Lock + Multi-Loader
 local allowedUsers = {
-    ["9wenerd"] = true,
-    ["6atotkaca9"] = true,
-    ["AsepSlebewNie"] = true,
+    ["6atotkaca9"]   = true,
+    ["9wenerd"]      = true,
+    ["AsepSlebewNie"]= true,
     ["ShedowBlack7"] = true,
 }
 
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+local lp = Players.LocalPlayer
 
--- Cek apakah username ada di daftar
-if not allowedUsers[LocalPlayer.Name] then
-    warn("❌ Kamu tidak punya izin menjalankan script ini.")
+if not allowedUsers[lp.Name] then
+    warn(("Access Denied for '%s'"):format(lp.Name))
     return
 end
 
--- Loadstring dari URL
-local url = "https://raw.githubusercontent.com/aditpacked/ramah-kali-we/refs/heads/main/ahaygnungrmah"
-local success, scriptContent = pcall(function()
-    return game:HttpGet(url)
-end)
-
-if not success then
-    warn("❌ Gagal ambil script dari URL")
-    return
+-- helper aman untuk fetch + jalankan
+local function fetch(url)
+    local ok, res = pcall(function()
+        return game:HttpGet(url, true)
+    end)
+    if not ok then
+        error(("Gagal ambil URL:\n%s\nDetail: %s"):format(url, tostring(res)))
+    end
+    return res
 end
 
--- Jalankan script utama
-local loaded, err = pcall(function()
-    loadstring(scriptContent)()
-end)
+local function run(src, url)
+    local f, err = loadstring(src)
+    if not f then
+        error(("Gagal compile dari URL:\n%s\nDetail: %s"):format(url, tostring(err)))
+    end
+    local ok, runtimeErr = pcall(f)
+    if not ok then
+        error(("Error saat eksekusi dari URL:\n%s\nDetail: %s"):format(url, tostring(runtimeErr)))
+    end
+end
 
-if not loaded then
-    warn("❌ Error saat menjalankan script:", err)
+-- daftar script yang ingin di-load
+local urls = {
+    "https://raw.githubusercontent.com/aditpacked/ramah-kali-we/refs/heads/main/ahaygnungrmah",
+    "https://raw.githubusercontent.com/aditpacked/ramah-kali-we/refs/heads/main/versitombol",
+}
+
+for _, url in ipairs(urls) do
+    local src = fetch(url)
+    run(src, url)
 end
