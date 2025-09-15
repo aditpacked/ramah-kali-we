@@ -1,33 +1,18 @@
--- 🧭 TP GUI • SUCKARDY (Dark, Minimal, 20% opacity, Minimize, Dorongan Anti-Tenggelam + Trigger)
+-- 🧭 TP GUI • VEET - Learner
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- ===== Helpers =====
-local function getHRP(timeout)
-    timeout = timeout or 10
+local function getHRP()
     local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    local t = 0
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    while not hrp and t < timeout do
-        char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-        hrp = char:FindFirstChild("HumanoidRootPart")
-        task.wait(0.1); t += 0.1
-    end
-    return hrp
+    return char:WaitForChild("HumanoidRootPart", 10)
 end
 
 local function safeTeleport(cf)
     local hrp = getHRP()
     if not hrp then return end
-
     local hum = hrp.Parent:FindFirstChildOfClass("Humanoid")
     if hum and hum.Sit then hum.Sit = false end
-
-    -- kasih offset ke atas
-    local offset = Vector3.new(0, 5, 0)
-    hrp.CFrame = cf + offset
-
-    -- kasih dorongan ke depan biar ke-trigger checkpoint
+    hrp.CFrame = cf + Vector3.new(0, 5, 0)
     local bv = Instance.new("BodyVelocity")
     bv.Velocity = (hrp.CFrame.LookVector * 30) + Vector3.new(0, 10, 0)
     bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
@@ -36,45 +21,34 @@ local function safeTeleport(cf)
     game:GetService("Debris"):AddItem(bv, 0.25)
 end
 
--- ===== Checkpoints =====
 local cps = {
-    {name="CP1",  cf=CFrame.new(-924.415283, -162.624069, -796.068604, 0.986193776, 0, -0.165595338, 0, 1, 0, 0.165595338, 0, 0.986193776)},
-    {name="CP2",  cf=CFrame.new(-383.62674, -182.437103, -825.920837, 1, 0, 0, 0, 1, 0, 0, 0, 1)},
-    {name="CP3",  cf=CFrame.new(-765.517273, -42.2615395, -804.050232, 0.868630826, 0, 0.495459884, 0, 1, 0, -0.495459884, 0, 0.868630826)},
-    {name="CP4",  cf=CFrame.new(-1134.93701, -94.5399475, -1168.0365, 0.980581105, 0, 0.196114138, 0, 1, 0, -0.196114138, 0, 0.980581105)},
-    {name="CP5",  cf=CFrame.new(-652.218689, -26.5494938, -1263.72864, 0.980581105, 0, 0.196114138, 0, 1, 0, -0.196114138, 0, 0.980581105)},
-    {name="CP6",  cf=CFrame.new(-1142.85132, 17.5048256, -1438.16052, 0.99177283, 0, -0.128010407, 0, 1, 0, 0.128010407, 0, 0.99177283)},
-    {name="CP7",  cf=CFrame.new(-936.768005, -102.675156, -1515.05688, 0.992966235, 0, 0.118397705, 0, 1, 0, -0.118397705, 0, 0.992966235)},
-    {name="CP8",  cf=CFrame.new(-460.066559, -46.9257469, -1610.33594, 0.992966235, 0, 0.118397705, 0, 1, 0, -0.118397705, 0, 0.992966235)},
-    {name="CP9",  cf=CFrame.new(95.5869904, -38.9119797, -1229.88477, 0.992966235, 0, 0.118397705, 0, 1, 0, -0.118397705, 0, 0.992966235)},
-    {name="CP10", cf=CFrame.new(102.027786, 109.436668, -829.650085, 1, 0, 0, 0, 1, 0, 0, 0, 1)},
+    {name="CP1",  cf=CFrame.new(-924.415, -162.624, -796.068)},
+    {name="CP2",  cf=CFrame.new(-383.626, -182.437, -825.920)},
+    {name="CP3",  cf=CFrame.new(-765.517, -42.261, -804.050)},
+    {name="CP4",  cf=CFrame.new(-1134.937, -94.539, -1168.036)},
+    {name="CP5",  cf=CFrame.new(-652.218, -26.549, -1263.728)},
+    {name="CP6",  cf=CFrame.new(-1142.851, 17.504, -1438.160)},
+    {name="CP7",  cf=CFrame.new(-936.768, -102.675, -1515.056)},
+    {name="CP8",  cf=CFrame.new(-460.066, -46.925, -1610.335)},
+    {name="CP9",  cf=CFrame.new(95.586, -38.911, -1229.884)},
+    {name="CP10", cf=CFrame.new(102.027, 109.436, -829.650)},
 }
 
--- ===== UI =====
-local CoreGui = game:GetService("CoreGui")
-local gui = Instance.new("ScreenGui")
+local gui = Instance.new("ScreenGui", game:GetService("CoreGui"))
 gui.Name = "TPMinimalGUI"
 gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = true
-gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-gui.Parent = CoreGui
 
-local frame = Instance.new("Frame")
+local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.fromOffset(220, 340)
 frame.Position = UDim2.new(0.05, 0, 0.2, 0)
 frame.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
 frame.BackgroundTransparency = 0.8
 frame.BorderSizePixel = 0
-frame.Active = true
-frame.Draggable = true
-frame.ZIndex = 10
-frame.Parent = gui
+frame.Active, frame.Draggable, frame.ZIndex = true, true, 10
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
 
--- Title bar (centered)
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 30) -- full width
-title.Position = UDim2.new(0, 0, 0, 0)
+local title = Instance.new("TextLabel", frame)
+title.Size = UDim2.new(1, 0, 0, 30)
 title.BackgroundTransparency = 1
 title.Text = "VEET - Learner"
 title.TextColor3 = Color3.fromRGB(220, 220, 230)
@@ -82,10 +56,8 @@ title.TextXAlignment = Enum.TextXAlignment.Center
 title.Font = Enum.Font.GothamBold
 title.TextSize = 16
 title.ZIndex = 11
-title.Parent = frame
 
--- Minimize button
-local miniBtn = Instance.new("TextButton")
+local miniBtn = Instance.new("TextButton", frame)
 miniBtn.Size = UDim2.fromOffset(28, 22)
 miniBtn.Position = UDim2.new(1, -32, 0, 4)
 miniBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
@@ -95,17 +67,14 @@ miniBtn.TextColor3 = Color3.fromRGB(230, 230, 240)
 miniBtn.Font = Enum.Font.GothamBold
 miniBtn.TextSize = 16
 miniBtn.AutoButtonColor = true
-miniBtn.ZIndex = 12 -- lebih tinggi dari judul
-miniBtn.Parent = frame
+miniBtn.ZIndex = 12
 Instance.new("UICorner", miniBtn).CornerRadius = UDim.new(0, 8)
 
--- List container
-local listHolder = Instance.new("Frame")
+local listHolder = Instance.new("Frame", frame)
 listHolder.Size = UDim2.new(1, -20, 1, -46)
 listHolder.Position = UDim2.new(0, 10, 0, 36)
 listHolder.BackgroundTransparency = 1
 listHolder.ZIndex = 11
-listHolder.Parent = frame
 
 local uiList = Instance.new("UIListLayout", listHolder)
 uiList.Padding = UDim.new(0, 6)
@@ -113,9 +82,8 @@ uiList.FillDirection = Enum.FillDirection.Vertical
 uiList.HorizontalAlignment = Enum.HorizontalAlignment.Center
 uiList.SortOrder = Enum.SortOrder.LayoutOrder
 
--- Build buttons
 local function makeBtn(label, onClick)
-    local btn = Instance.new("TextButton")
+    local btn = Instance.new("TextButton", listHolder)
     btn.Size = UDim2.new(1, 0, 0, 28)
     btn.BackgroundColor3 = Color3.fromRGB(28, 28, 34)
     btn.BackgroundTransparency = 0.8
@@ -126,7 +94,6 @@ local function makeBtn(label, onClick)
     btn.TextSize = 13
     btn.AutoButtonColor = true
     btn.ZIndex = 11
-    btn.Parent = listHolder
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
     btn.MouseButton1Click:Connect(onClick)
 end
@@ -135,18 +102,10 @@ for _, item in ipairs(cps) do
     makeBtn(item.name, function() safeTeleport(item.cf) end)
 end
 
--- Minimize logic
-local minimized = false
-local fullSize = frame.Size
+local minimized, fullSize = false, frame.Size
 miniBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
-    if minimized then
-        listHolder.Visible = false
-        frame.Size = UDim2.fromOffset(fullSize.X.Offset, 38)
-        miniBtn.Text = "+"
-    else
-        listHolder.Visible = true
-        frame.Size = fullSize
-        miniBtn.Text = "–"
-    end
+    listHolder.Visible = not minimized
+    frame.Size = minimized and UDim2.fromOffset(fullSize.X.Offset, 38) or fullSize
+    miniBtn.Text = minimized and "+" or "–"
 end)
